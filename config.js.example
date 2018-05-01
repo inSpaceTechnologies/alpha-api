@@ -1,9 +1,11 @@
 var config = {
   development: {
-      //server details
-      server: {
-          port: '3000'
-      }
+    server: {
+        port: '3000'
+    },
+    mongo: {
+        uri: 'mongodb://localhost/inspace'
+    }
   }
 };
 
