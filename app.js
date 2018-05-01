@@ -1,10 +1,15 @@
 const express = require('express');
 const app = express();
 
+const env = process.env.NODE_ENV;
+console.log("Envoroment: " + env);
+const config = require('./config')[env];
+
 app.get('/', (req, res) => {
   res.send('Hello World.');
 });
 
-app.listen(3000, () => {
-  console.log('Express listening on port 3000.');
+const port = config.server.port;
+app.listen(port, () => {
+  console.log('Express listening on port ' + port + '.');
 });
