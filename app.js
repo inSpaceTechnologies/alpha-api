@@ -4,6 +4,7 @@ const hash = require('pbkdf2-password')();
 const jwt = require('jsonwebtoken');
 const expressjwt = require('express-jwt');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const env = process.env.NODE_ENV;
 console.log("Envoroment: " + env);
@@ -36,8 +37,10 @@ function unknownError(err) {
   return err;
 }
 
-// so we don't have to use body-parser to get req.body
-app.use(express.urlencoded({ extended: false }));
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse application/json
+app.use(bodyParser.json());
 
 app.use(cors());
 
