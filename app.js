@@ -1,12 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const hash = require('pbkdf2-password')();
+const jwt = require('jsonwebtoken');
+const expressjwt = require('express-jwt');
 
 const env = process.env.NODE_ENV;
 console.log("Envoroment: " + env);
 const config = require('./config')[env];
 
 const app = express();
+
+var authenticationMiddleware = expressjwt({secret: config.jwt.secret});
 
 function errorHandler(err, req, res, next) {
   if (!err.status) {
@@ -88,6 +92,48 @@ db.once('open', () => {
         });
       });
     });
+  });
+
+  app.post('/login', (req, res, next) => {
+
+    var email = req.body.email,
+        password = req.body.password;
+
+    if (!email) {
+      return next(new Error("You must supply an email address."));
+    }
+
+    User.findOne({ email: email}, (err, user) => {
+      if (err) {
+        return next(unknownError(err));
+      }
+      if (!user) {
+        return next(new Error("Email address not found."));
+      }
+
+      hash({ password: password, salt: user.salt }, (err, pass, salt, passwordHash) => {
+        if (err) {
+          return next(unknownError(err));
+        }
+        if (passwordHash !== user.passwordHash) {
+          return next(new Error("Wrong password."));
+        }
+        const payload = {
+          id: user._id,
+          email: user.email
+        };
+        var token = jwt.sign(payload, config.jwt.secret, { expiresIn: '1h' });
+
+        res.json({
+          success: true,
+          token: token
+        });
+      });
+    });
+  });
+
+  app.get('/restricted', authenticationMiddleware, (req, res, next) => {
+      res.send("You have passed authentication. User id: " + req.user.id + " Email: " + req.user.email);
   });
 
   app.use(errorHandler);

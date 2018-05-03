@@ -3,6 +3,9 @@ var config = {
     server: {
       port: '3000'
     },
+    jwt: {
+      secret: 'replaceme'
+    },
     mongo: {
       uri: 'mongodb://localhost/inspace'
     }
