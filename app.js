@@ -63,7 +63,7 @@ db.once('open', () => {
   });
   var User = mongoose.model('User', userSchema);
 
-  app.post('/signup', (req, res, next) => {
+  app.post('/auth/register', (req, res, next) => {
 
     var email = req.body.email,
         password = req.body.password;
@@ -100,7 +100,14 @@ db.once('open', () => {
     });
   });
 
-  app.post('/login', (req, res, next) => {
+  function payload(user) {
+    return {
+      id: user.id,
+      email: user.email
+    };
+  }
+
+  app.post('/auth/login', (req, res, next) => {
 
     var email = req.body.email,
         password = req.body.password;
@@ -124,17 +131,38 @@ db.once('open', () => {
         if (passwordHash !== user.passwordHash) {
           return next(new Error("Wrong password."));
         }
-        const payload = {
-          id: user._id,
-          email: user.email
-        };
-        var token = jwt.sign(payload, config.jwt.secret, { expiresIn: '1h' });
+        var token = jwt.sign(payload(user), config.jwt.secret, { expiresIn: '1h' });
+
+        res.set({
+          "access-control-expose-headers": "Authorization",
+          "authorization": token
+        });
 
         res.json({
-          success: true,
-          token: token
+          status: "success"
         });
       });
+    });
+  });
+
+  app.get('/auth/user', authenticationMiddleware, (req, res, next) => {
+    res.json({
+      "status":"success",
+      "data": req.user
+    });
+  });
+
+  app.get('/auth/refresh', authenticationMiddleware, (req, res, next) => {
+
+    var token = jwt.sign(payload(req.user), config.jwt.secret, { expiresIn: '1h' });
+
+    res.set({
+      "access-control-expose-headers": "Authorization",
+      "authorization": token
+    });
+
+    res.json({
+      status: "success"
     });
   });
 
