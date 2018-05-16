@@ -1,15 +1,15 @@
-var config = {
+const config = {
   development: {
     server: {
-      port: '3000'
+      port: '3000',
     },
     jwt: {
-      secret: 'replaceme'
+      secret: 'replaceme',
     },
     mongo: {
-      uri: 'mongodb://localhost/inspace'
-    }
-  }
+      uri: 'mongodb://localhost/inspace',
+    },
+  },
 };
 
 // same for now
