@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const expressjwt = require('express-jwt');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const IPFSFactory = require('ipfsd-ctl');
 
 const env = process.env.NODE_ENV;
 console.log(`Enviroment: ${env}`);
@@ -176,10 +177,94 @@ db.once('open', () => {
     res.send(`You have passed authentication. User id: ${req.user.id} Email: ${req.user.email}`);
   });
 
-  app.use(errorHandler);
+  const ipfsFactory = IPFSFactory.create();
+  const { path } = config.ipfs;
 
-  const { port } = config.server;
-  app.listen(port, () => {
-    console.log(`Express listening on port ${port}.`);
+  ipfsFactory.spawn({
+    disposable: false,
+    repoPath: path,
+    init: false,
+    start: false,
+    config: {
+      API: {
+        HTTPHeaders: {
+          'Access-Control-Allow-Origin': ['*'],
+          'Access-Control-Allow-Credentials': ['true'],
+          'Access-Control-Allow-Methods': ['PUT', 'POST', 'GET'],
+        },
+      },
+      Addresses: {
+        Swarm: ['/ip4/0.0.0.0/tcp/4002'],
+        API: '/ip4/0.0.0.0/tcp/5002',
+        Gateway: '/ip4/0.0.0.0/tcp/8081',
+      },
+    },
+  }, (err, ipfsd) => {
+    if (err) {
+      console.log('IPFS daemon spawn error');
+      console.log(err);
+      return;
+    }
+    console.log('IPFS daemon spawned.');
+
+    app.put('/ipfs/init', authenticationMiddleware, (req, res, next) => {
+      ipfsd.init({
+        keysize: 2048,
+        path,
+      }, (err) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.sendStatus(200);
+      });
+    });
+
+    app.put('/ipfs/delete', authenticationMiddleware, (req, res, next) => {
+      ipfsd.cleanup((err) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.sendStatus(200);
+      });
+    });
+
+    app.put('/ipfs/start', authenticationMiddleware, (req, res, next) => {
+      ipfsd.start([], (err) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.sendStatus(200);
+      });
+    });
+
+    app.put('/ipfs/stop', authenticationMiddleware, (req, res, next) => {
+      ipfsd.stop((err) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.sendStatus(200);
+      });
+    });
+
+    app.get('/ipfs/config', authenticationMiddleware, (req, res, next) => {
+      ipfsd.getConfig((err, conf) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.json(conf);
+      });
+    });
+
+    app.use(errorHandler);
+
+    const { port } = config.server;
+    app.listen(port, () => {
+      console.log(`Express listening on port ${port}.`);
+    });
   });
 });

@@ -9,6 +9,9 @@ const config = {
     mongo: {
       uri: 'mongodb://localhost/inspace',
     },
+    ipfs: {
+      path: '~/ipfsrepo',
+    },
   },
 };
 
