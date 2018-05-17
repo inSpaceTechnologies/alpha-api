@@ -17,7 +17,15 @@ const app = express();
 
 const authenticationMiddleware = expressjwt({ secret: config.jwt.secret });
 
-function errorHandler(err, req, res, next) {
+const adminCheck = (req, res, next) => {
+  if (config.admins.includes(req.user.email)) {
+    next();
+    return;
+  }
+  res.status(403).send('Must be admin.');
+};
+
+const errorHandler = (err, req, res, next) => {
   if (!err.status) {
     err.status = 400;
   }
@@ -31,7 +39,7 @@ function errorHandler(err, req, res, next) {
     console.error(err.stack);
   }
   res.status(err.status).send(err.sendMessage);
-}
+};
 
 function unknownError(err) {
   err.sendMessage = 'Unknown error';
@@ -175,6 +183,10 @@ db.once('open', () => {
 
   app.get('/restricted', authenticationMiddleware, (req, res) => {
     res.send(`You have passed authentication. User id: ${req.user.id} Email: ${req.user.email}`);
+  });
+
+  app.get('/admin', authenticationMiddleware, adminCheck, (req, res) => {
+    res.send(`You are an admin. User id: ${req.user.id} Email: ${req.user.email}`);
   });
 
   const ipfsFactory = IPFSFactory.create();

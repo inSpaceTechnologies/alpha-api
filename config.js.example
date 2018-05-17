@@ -1,5 +1,6 @@
 const config = {
   development: {
+    admins: ['a@b.com'],
     server: {
       port: '3000',
     },
