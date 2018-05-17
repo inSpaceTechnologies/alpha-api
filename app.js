@@ -8,6 +8,7 @@ const expressjwt = require('express-jwt');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const IPFSFactory = require('ipfsd-ctl');
+const Busboy = require('busboy');
 
 const env = process.env.NODE_ENV;
 console.log(`Enviroment: ${env}`);
@@ -219,6 +220,8 @@ db.once('open', () => {
     }
     console.log('IPFS daemon spawned.');
 
+    let ipfsAPI = null;
+
     app.put('/ipfs/init', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.init({
         keysize: 2048,
@@ -243,11 +246,12 @@ db.once('open', () => {
     });
 
     app.put('/ipfs/start', authenticationMiddleware, adminCheck, (req, res, next) => {
-      ipfsd.start([], (err) => {
+      ipfsd.start([], (err, api) => {
         if (err) {
           next(unknownError(err));
           return;
         }
+        ipfsAPI = api;
         res.sendStatus(200);
       });
     });
@@ -270,6 +274,21 @@ db.once('open', () => {
         }
         res.json(conf);
       });
+    });
+
+    app.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
+      const busboy = new Busboy({ headers: req.headers });
+
+      busboy.on('file', (fieldname, file /* ,filename, encoding, mimetype */) => {
+        ipfsAPI.files.add(file, (err, data) => {
+          if (err) {
+            next(unknownError(err));
+            return;
+          }
+          res.send({ hash: data[0].hash });
+        });
+      });
+      return req.pipe(busboy);
     });
 
     app.use(errorHandler);
