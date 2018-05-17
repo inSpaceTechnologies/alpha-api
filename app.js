@@ -219,7 +219,7 @@ db.once('open', () => {
     }
     console.log('IPFS daemon spawned.');
 
-    app.put('/ipfs/init', authenticationMiddleware, (req, res, next) => {
+    app.put('/ipfs/init', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.init({
         keysize: 2048,
         path,
@@ -232,7 +232,7 @@ db.once('open', () => {
       });
     });
 
-    app.put('/ipfs/delete', authenticationMiddleware, (req, res, next) => {
+    app.put('/ipfs/delete', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.cleanup((err) => {
         if (err) {
           next(unknownError(err));
@@ -242,7 +242,7 @@ db.once('open', () => {
       });
     });
 
-    app.put('/ipfs/start', authenticationMiddleware, (req, res, next) => {
+    app.put('/ipfs/start', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.start([], (err) => {
         if (err) {
           next(unknownError(err));
@@ -252,7 +252,7 @@ db.once('open', () => {
       });
     });
 
-    app.put('/ipfs/stop', authenticationMiddleware, (req, res, next) => {
+    app.put('/ipfs/stop', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.stop((err) => {
         if (err) {
           next(unknownError(err));
@@ -262,7 +262,7 @@ db.once('open', () => {
       });
     });
 
-    app.get('/ipfs/config', authenticationMiddleware, (req, res, next) => {
+    app.get('/ipfs/config', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.getConfig((err, conf) => {
         if (err) {
           next(unknownError(err));
