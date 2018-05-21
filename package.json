@@ -7,7 +7,7 @@
     "lint": "eslint . --ignore-path .gitignore --ext .js,.js.example"
   },
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MPL-2.0",
   "dependencies": {
     "body-parser": "^1.18.2",
     "busboy": "^0.2.14",
