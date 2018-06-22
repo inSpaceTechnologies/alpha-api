@@ -121,9 +121,14 @@ db.once('open', () => {
   });
 
   function payload(user) {
+    const roles = [];
+    if (config.admins.includes(user.email)) {
+      roles.push('admin');
+    }
     return {
       id: user.id,
       email: user.email,
+      roles,
     };
   }
 
