@@ -256,6 +256,10 @@ db.once('open', () => {
       });
     });
 
+    app.get('/ipfs/started', authenticationMiddleware, adminCheck, (req, res, next) => {
+      res.json(ipfsd.started);
+    });
+
     app.put('/ipfs/start', authenticationMiddleware, adminCheck, (req, res, next) => {
       ipfsd.start([], (err, api) => {
         if (err) {
@@ -300,6 +304,15 @@ db.once('open', () => {
         });
       });
       return req.pipe(busboy);
+    });
+
+    app.get('/ipfs/pin/ls', authenticationMiddleware, adminCheck, (req, res, next) => {
+      ipfsAPI.pin.ls((err, pinset) => {
+        if (err) {
+          throw err;
+        }
+        res.json({ pinset });
+      });
     });
 
     app.use(errorHandler);
