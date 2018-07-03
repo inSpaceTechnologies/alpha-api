@@ -15,6 +15,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const IPFSFactory = require('ipfsd-ctl');
 const Busboy = require('busboy');
+const DigestStream = require('digest-stream');
 
 const env = process.env.NODE_ENV;
 console.log(`Enviroment: ${env}`);
@@ -295,12 +296,22 @@ db.once('open', () => {
       const busboy = new Busboy({ headers: req.headers });
 
       busboy.on('file', (fieldname, file /* ,filename, encoding, mimetype */) => {
-        ipfsAPI.files.add(file, (err, data) => {
+        // use digestStream to get the SHA256 hash
+        let sha256;
+        function digest(resultDigest /* , length */) {
+          sha256 = resultDigest;
+        }
+        const digestStream = DigestStream('sha256', 'hex', digest);
+        file.pipe(digestStream);
+        ipfsAPI.files.add(digestStream, (err, data) => {
           if (err) {
             next(unknownError(err));
             return;
           }
-          res.send({ hash: data[0].hash });
+          res.send({
+            ipfsHash: data[0].hash,
+            sha256,
+          });
         });
       });
       return req.pipe(busboy);
