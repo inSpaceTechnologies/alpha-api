@@ -13,6 +13,9 @@ const config = {
     ipfs: {
       path: '~/ipfsrepo',
     },
+    morgan: {
+      format: 'combined',
+    },
   },
 };
 

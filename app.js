@@ -13,6 +13,7 @@ const jwt = require('jsonwebtoken');
 const expressjwt = require('express-jwt');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const IPFSFactory = require('ipfsd-ctl');
 const Busboy = require('busboy');
 const DigestStream = require('digest-stream');
@@ -22,6 +23,8 @@ console.log(`Enviroment: ${env}`);
 const config = require('./config')[env];
 
 const app = express();
+
+app.use(morgan(config.morgan.format));
 
 const authenticationMiddleware = expressjwt({ secret: config.jwt.secret });
 
@@ -64,7 +67,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
-  res.send('Hello World.');
+  res.send(`Enviroment: ${env}`);
 });
 
 mongoose.connect(config.mongo.uri);
