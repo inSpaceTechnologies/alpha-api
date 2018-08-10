@@ -2,7 +2,7 @@
   "name": "inspace-api",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --ext .js,.js.example",
     "license": "license-check-and-add"
@@ -34,7 +34,7 @@
     "license": "header.txt",
     "exact_paths_method": "INCLUDE",
     "exact_paths": [
-      "app.js"
+      "src"
     ],
     "file_type_method": "INCLUDE",
     "file_types": [

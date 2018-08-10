@@ -7,6 +7,8 @@ module.exports = {
     "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
     'max-len': ['off'],
     'no-console': ['off'],
+    'no-shadow': ["error", { "allow": ["err"] }],
+    'no-underscore-dangle': ['off']
   },
   "env": {
     "node": true,

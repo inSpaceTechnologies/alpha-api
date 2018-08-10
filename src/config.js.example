@@ -1,3 +1,5 @@
+const env = process.env.NODE_ENV;
+
 const config = {
   development: {
     admins: ['a@b.com'],
@@ -22,4 +24,4 @@ const config = {
 // same for now
 config.production = config.development;
 
-module.exports = config;
+module.exports = config[env];
