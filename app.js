@@ -296,7 +296,13 @@ db.once('open', () => {
     });
 
     app.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
-      const busboy = new Busboy({ headers: req.headers });
+      let busboy;
+
+      try {
+        busboy = new Busboy({ headers: req.headers });
+      } catch (err) {
+        return next(unknownError(err));
+      }
 
       busboy.on('file', (fieldname, file /* ,filename, encoding, mimetype */) => {
         // use digestStream to get the SHA256 hash
@@ -317,6 +323,11 @@ db.once('open', () => {
           });
         });
       });
+
+      busboy.on('error', (err) => {
+        next(unknownError(err));
+      });
+
       return req.pipe(busboy);
     });
 
