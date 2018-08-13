@@ -13,6 +13,7 @@ const { unknownError } = require('../middleware/error');
 
 // middleware
 const { authenticationMiddleware } = require('../middleware/auth');
+
 // models
 const { User } = require('../models/user');
 

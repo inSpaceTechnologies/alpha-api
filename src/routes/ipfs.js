@@ -11,6 +11,9 @@ const DigestStream = require('digest-stream');
 const { authenticationMiddleware, adminCheck } = require('../middleware/auth');
 const ipfsManager = require('../ipfs');
 
+// models
+const { IPFSFile } = require('../models/ipfs');
+
 const { unknownError } = require('../middleware/error');
 
 const router = express.Router();
@@ -83,10 +86,12 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
   }
 
   busboy.on('file', (fieldname, file /* ,filename, encoding, mimetype */) => {
-    // use digestStream to get the SHA256 hash
-    let sha256;
-    function digest(resultDigest /* , length */) {
+    // use digestStream to get the size and SHA256 hash
+    let sha256 = null;
+    let size = null;
+    function digest(resultDigest, resultSize) {
       sha256 = resultDigest;
+      size = resultSize;
     }
     const digestStream = DigestStream('sha256', 'hex', digest);
     file.pipe(digestStream);
@@ -95,9 +100,25 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
         next(unknownError(err));
         return;
       }
-      res.send({
-        ipfsHash: data[0].hash,
-        sha256,
+
+      const { hash } = data[0];
+
+      // keep a record of whose file it is in our database
+      const ipfsFileEntry = new IPFSFile({
+        hash,
+        user: req.user.id,
+        size,
+      });
+      ipfsFileEntry.save((err) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.send({
+          ipfsHash: hash,
+          sha256,
+          size,
+        });
       });
     });
   });
