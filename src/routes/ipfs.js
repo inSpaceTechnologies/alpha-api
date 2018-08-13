@@ -31,7 +31,7 @@ router.put('/ipfs/init', authenticationMiddleware, adminCheck, (req, res, next) 
   });
 });
 
-router.put('/ipfs/delete', authenticationMiddleware, adminCheck, (req, res, next) => {
+router.put('/ipfs/cleanup', authenticationMiddleware, adminCheck, (req, res, next) => {
   ipfsManager.ipfsd().cleanup((err) => {
     if (err) {
       next(unknownError(err));
@@ -95,6 +95,8 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
     }
     const digestStream = DigestStream('sha256', 'hex', digest);
     file.pipe(digestStream);
+
+    // this pins it too
     ipfsManager.api().files.add(digestStream, (err, data) => {
       if (err) {
         next(unknownError(err));
@@ -102,22 +104,30 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
       }
 
       const { hash } = data[0];
-
-      // keep a record of whose file it is in our database
-      const ipfsFileEntry = new IPFSFile({
-        hash,
-        user: req.user.id,
+      const ret = {
+        ipfsHash: hash,
+        sha256,
         size,
-      });
-      ipfsFileEntry.save((err) => {
-        if (err) {
-          next(unknownError(err));
+      };
+
+      // keep a record of whose file it is in our database.
+      // do not store multiple records for the same user and file.
+      IPFSFile.findOne({ hash, user: req.user.id }, (err, entry) => {
+        if (entry) {
+          res.send(ret);
           return;
         }
-        res.send({
-          ipfsHash: hash,
-          sha256,
+        const ipfsFileEntry = new IPFSFile({
+          hash,
+          user: req.user.id,
           size,
+        });
+        ipfsFileEntry.save((err) => {
+          if (err) {
+            next(unknownError(err));
+            return;
+          }
+          res.send(ret);
         });
       });
     });
@@ -130,10 +140,46 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
   return req.pipe(busboy);
 });
 
+router.put('/ipfs/unpin/:hash', authenticationMiddleware, (req, res, next) => {
+  const { hash } = req.params;
+  // multiple users might have uploaded this file.
+  // only unpin if the requester is the only user.
+
+  // delete the record for this user.
+  IPFSFile.remove({ hash, user: req.user.id }, (err) => {
+    if (err) {
+      next(unknownError(err));
+      return;
+    }
+
+    // check for others (from any user)
+    IPFSFile.findOne({ hash }, (err, row) => {
+      if (err) {
+        next(unknownError(err));
+        return;
+      }
+      if (row) {
+        // there are others, so do not unpin
+        res.json({ pinset: [] });
+        return;
+      }
+      // unpin
+      ipfsManager.api().pin.rm(hash, (err, pinset) => {
+        if (err) {
+          next(unknownError(err));
+          return;
+        }
+        res.json({ pinset });
+      });
+    });
+  });
+});
+
 router.get('/ipfs/pin/ls', authenticationMiddleware, adminCheck, (req, res, next) => {
   ipfsManager.api().pin.ls((err, pinset) => {
     if (err) {
-      throw err;
+      next(unknownError(err));
+      return;
     }
     res.json({ pinset });
   });
