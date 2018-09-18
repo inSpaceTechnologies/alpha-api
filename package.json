@@ -10,10 +10,13 @@
   "author": "",
   "license": "MPL-2.0",
   "dependencies": {
+    "axios": "^0.18.0",
+    "bitcore-lib": "^0.15.0",
     "body-parser": "^1.18.2",
     "busboy": "^0.2.14",
     "cors": "^2.8.4",
     "digest-stream": "^2.0.0",
+    "eosjs": "^16.0.8",
     "express": "^4.16.3",
     "express-jwt": "^5.3.1",
     "go-ipfs-dep": "^0.4.14",

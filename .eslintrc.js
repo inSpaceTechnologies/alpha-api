@@ -8,7 +8,8 @@ module.exports = {
     'max-len': ['off'],
     'no-console': ['off'],
     'no-shadow': ["error", { "allow": ["err"] }],
-    'no-underscore-dangle': ['off']
+    'no-underscore-dangle': ['off'],
+    'no-restricted-syntax': ['off']
   },
   "env": {
     "node": true,

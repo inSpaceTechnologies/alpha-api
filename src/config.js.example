@@ -18,6 +18,37 @@ const config = {
     morgan: {
       format: 'combined',
     },
+    purchase: {
+      // how often to check balances of accounts that are receiving payment
+      updateInterval: 5000, // 5 seconds
+      // how long a transaction lasts before expiring
+      // timeLimit: 12 * 60 * 60 * 1000, // 12 hours
+      timeLimit: 5 * 60 * 1000, // 5 minutes
+      // account that receives EOS payments
+      eosDepositAccount: 'inspace',
+      bitcoin: {
+        xpubs: ['xpub...'],
+        // index into xpubs array, for the xpub used to generate addresses
+        currentXpubIndex: 0,
+        insightAPI: 'https://insight.bitpay.com/api/',
+      },
+    },
+    eos: {
+      host: 'http://127.0.0.1:8888',
+      chainID: '...',
+      iscoin: {
+        // EOS account that has the iscoin token contract
+        account: 'iscoin',
+        // token details
+        code: 'ISC',
+        decimalPlaces: 4,
+        // EOS account that issues iscoin tokens
+        issuer: {
+          account: 'iscoinissue',
+          privateKey: '...',
+        },
+      }
+    },
   },
 };
 

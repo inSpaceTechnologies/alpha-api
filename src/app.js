@@ -13,10 +13,12 @@ const morgan = require('morgan');
 const config = require('./config');
 const error = require('./middleware/error');
 const ipfsManager = require('./ipfs');
+const purchaseManager = require('./purchase');
 
-// routessdsdf
+// routes
 const authRouter = require('./routes/auth');
 const ipfsRouter = require('./routes/ipfs');
+const purchaseRouter = require('./routes/purchase');
 
 // middleware
 const { authenticationMiddleware, adminCheck } = require('./middleware/auth');
@@ -38,6 +40,7 @@ app.get('/', (req, res) => {
 });
 
 // connect to mongoose
+mongoose.Promise = global.Promise;
 mongoose.connect(config.mongo.uri);
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -46,6 +49,10 @@ db.once('open', () => {
 
   // add auth routes
   app.use(authRouter);
+
+  // add purchase routes
+  app.use(purchaseRouter);
+  purchaseManager.init();
 
   // test routes
   app.get('/restricted', authenticationMiddleware, (req, res) => {
