@@ -23,6 +23,9 @@ class IPFSManager {
   api() {
     return this._api;
   }
+  path() {
+    return this._path;
+  }
   init(done) {
     const ipfsFactory = IPFSFactory.create();
 
