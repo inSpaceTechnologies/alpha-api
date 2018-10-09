@@ -11,26 +11,26 @@
   "license": "MPL-2.0",
   "dependencies": {
     "axios": "^0.18.0",
-    "bitcore-lib": "^0.15.0",
-    "body-parser": "^1.18.2",
+    "bitcore-lib": "^8.0.0",
+    "body-parser": "^1.18.3",
     "busboy": "^0.2.14",
     "cors": "^2.8.4",
     "digest-stream": "^2.0.0",
-    "eosjs": "^16.0.8",
+    "eosjs": "^16.0.9",
     "express": "^4.16.3",
     "express-jwt": "^5.3.1",
-    "go-ipfs-dep": "^0.4.14",
-    "ipfsd-ctl": "^0.32.1",
-    "jsonwebtoken": "^8.2.1",
-    "mongoose": "^5.0.17",
-    "morgan": "^1.9.0",
+    "go-ipfs-dep": "^0.4.17",
+    "ipfsd-ctl": "^0.39.2",
+    "jsonwebtoken": "^8.3.0",
+    "mongoose": "^5.3.2",
+    "morgan": "^1.9.1",
     "pbkdf2-password": "^1.2.1"
   },
   "devDependencies": {
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.12.0",
-    "license-check-and-add": "^2.3.4"
+    "eslint": "^5.6.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "license-check-and-add": "^2.3.6"
   },
   "license-check-and-add-config": {
     "folder": ".",
