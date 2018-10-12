@@ -16,7 +16,6 @@ const ipfsManager = require('./ipfs');
 const purchaseManager = require('./purchase');
 
 // routes
-const authRouter = require('./routes/auth');
 const ipfsRouter = require('./routes/ipfs');
 const purchaseRouter = require('./routes/purchase');
 
@@ -47,19 +46,16 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {
   console.log('Connected to database.');
 
-  // add auth routes
-  app.use(authRouter);
-
   // add purchase routes
   app.use(purchaseRouter);
   purchaseManager.init();
 
   // test routes
   app.get('/restricted', authenticationMiddleware, (req, res) => {
-    res.send(`You have passed authentication. User id: ${req.user.id} Email: ${req.user.email}`);
+    res.send(`You have passed authentication. User id: ${req.user.id}`);
   });
   app.get('/admin', authenticationMiddleware, adminCheck, (req, res) => {
-    res.send(`You are an admin. User id: ${req.user.id} Email: ${req.user.email}`);
+    res.send(`You are an admin. User id: ${req.user.id}`);
   });
 
   // initialise IPFS manager

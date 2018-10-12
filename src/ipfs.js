@@ -14,18 +14,23 @@ class IPFSManager {
     this._path = config.ipfs.path;
     this._api = null;
   }
+
   ipfsd() {
     return this._ipfsd;
   }
+
   setAPI(api) {
     this._api = api;
   }
+
   api() {
     return this._api;
   }
+
   path() {
     return this._path;
   }
+
   init(done) {
     const ipfsFactory = IPFSFactory.create();
 

@@ -2,7 +2,7 @@ const env = process.env.NODE_ENV;
 
 const config = {
   development: {
-    admins: ['a@b.com'],
+    admins: ['EOS...'],
     server: {
       port: '3000',
     },
@@ -47,7 +47,7 @@ const config = {
           account: 'iscoinissue',
           privateKey: '...',
         },
-      }
+      },
     },
   },
 };

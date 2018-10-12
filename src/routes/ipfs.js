@@ -117,6 +117,7 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
           res.send(ret);
           return;
         }
+
         const ipfsFileEntry = new IPFSFile({
           hash,
           user: req.user.id,
