@@ -82,9 +82,8 @@ async function updateBitcoin() {
     // update balance
     const derivedPublicKey = hdPublicKey.derive(address.index);
     const bitcoinAddress = new Address(derivedPublicKey.publicKey, Networks.livenet).toString();
-    const response = await axios.get(`${config.purchase.bitcoin.insightAPI}${bitcoinAddress}/balance`);
-    const balance = parseInt(response.data, 10) / 100000000;
-    // balance = 100;
+    const response = await axios.get(`${config.purchase.bitcoin.insightAPI}/addr/${bitcoinAddress}`);
+    const balance = parseInt(response.data.balance, 10) / 100000000;
     transaction.amountReceived = balance;
     await transaction.save();
 
