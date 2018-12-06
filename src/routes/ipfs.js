@@ -97,7 +97,7 @@ router.post('/ipfs/upload', authenticationMiddleware, (req, res, next) => {
     file.pipe(digestStream);
 
     // this pins it too
-    ipfsManager.api().files.add(digestStream, (err, data) => {
+    ipfsManager.api().add(digestStream, (err, data) => {
       if (err) {
         next(unknownError(err));
         return;
