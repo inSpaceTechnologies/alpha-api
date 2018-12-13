@@ -44,7 +44,7 @@ class IPFSManager {
         },
         Addresses: {
           Swarm: ['/ip4/0.0.0.0/tcp/4002'],
-          API: '/ip4/0.0.0.0/tcp/5002',
+          API: '/ip4/0.0.0.0/tcp/5001',
           Gateway: '/ip4/0.0.0.0/tcp/8081',
         },
       },
