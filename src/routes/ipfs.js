@@ -46,12 +46,11 @@ router.get('/ipfs/started', authenticationMiddleware, adminCheck, (req, res, nex
 });
 
 router.put('/ipfs/start', authenticationMiddleware, adminCheck, (req, res, next) => {
-  ipfsManager.ipfsd().start([], (err, api) => {
+  ipfsManager.ipfsd().start((err/* , api */) => {
     if (err) {
       next(unknownError(err));
       return;
     }
-    ipfsManager.setAPI(api);
     res.sendStatus(200);
   });
 });

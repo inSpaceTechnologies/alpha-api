@@ -12,19 +12,14 @@ class IPFSManager {
   constructor() {
     this._ipfsd = null;
     this._path = config.ipfs.path;
-    this._api = null;
   }
 
   ipfsd() {
     return this._ipfsd;
   }
 
-  setAPI(api) {
-    this._api = api;
-  }
-
   api() {
-    return this._api;
+    return this._ipfsd.api;
   }
 
   path() {
