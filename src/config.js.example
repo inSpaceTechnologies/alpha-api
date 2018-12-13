@@ -10,7 +10,8 @@ const config = {
       uri: 'mongodb://localhost/inspace',
     },
     ipfs: {
-      path: '~/ipfsrepo',
+      // can't use ~ in path because js-ipfsd-ctl won't be able to connect to a running daemon
+      path: '/home/fred/ipfsrepo',
     },
     morgan: {
       format: 'combined',
