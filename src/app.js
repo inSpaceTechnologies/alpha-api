@@ -12,11 +12,9 @@ const morgan = require('morgan');
 
 const config = require('./config');
 const error = require('./middleware/error');
-const ipfsManager = require('./ipfs');
 const purchaseManager = require('./purchase');
 
 // routes
-const ipfsRouter = require('./routes/ipfs');
 const purchaseRouter = require('./routes/purchase');
 
 // middleware
@@ -58,21 +56,10 @@ db.once('open', () => {
     res.send(`You are an admin. User id: ${req.user.id}`);
   });
 
-  // initialise IPFS manager
-  ipfsManager.init((err) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
+  app.use(error.errorHandler);
 
-    // add IPFS routes
-    app.use(ipfsRouter);
-
-    app.use(error.errorHandler);
-
-    const { port } = config.server;
-    app.listen(port, () => {
-      console.log(`Express listening on port ${port}.`);
-    });
+  const { port } = config.server;
+  app.listen(port, () => {
+    console.log(`Express listening on port ${port}.`);
   });
 });
