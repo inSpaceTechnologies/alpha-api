@@ -17,9 +17,6 @@ const purchaseManager = require('./purchase');
 // routes
 const purchaseRouter = require('./routes/purchase');
 
-// middleware
-const { authenticationMiddleware, adminCheck } = require('./middleware/auth');
-
 const app = express();
 
 app.use(morgan(config.morgan.format));
@@ -47,14 +44,6 @@ db.once('open', () => {
   // add purchase routes
   app.use(purchaseRouter);
   purchaseManager.init();
-
-  // test routes
-  app.get('/restricted', authenticationMiddleware, (req, res) => {
-    res.send(`You have passed authentication. User id: ${req.user.id}`);
-  });
-  app.get('/admin', authenticationMiddleware, adminCheck, (req, res) => {
-    res.send(`You are an admin. User id: ${req.user.id}`);
-  });
 
   app.use(error.errorHandler);
 

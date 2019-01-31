@@ -16,9 +16,6 @@ const {
 const config = require('../config');
 const { unknownError } = require('../middleware/error');
 
-// middleware
-// const { authenticationMiddleware } = require('../middleware/auth');
-
 // models
 const { BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction } = require('../models/purchase');
 

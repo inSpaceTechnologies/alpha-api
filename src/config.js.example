@@ -2,7 +2,6 @@ const env = process.env.NODE_ENV;
 
 const config = {
   development: {
-    admins: ['EOS...'],
     server: {
       port: '3000',
     },
