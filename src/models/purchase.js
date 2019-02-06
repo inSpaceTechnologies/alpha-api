@@ -40,6 +40,16 @@ const eosIscoinPurchaseTransactionSchema = mongoose.Schema({
   active: { type: Boolean, required: true, default: false },
 });
 
+// https://github.com/inSpaceTechnologies/eos-transfer-monitor will add EOS
+// transfers.
+const eosTransferSchema = mongoose.Schema({
+  from: { type: String, required: true },
+  to: { type: String, required: true },
+  memo: { type: String, required: true },
+  symbol: { type: String, required: true },
+  amount: { type: Number, required: true },
+});
+
 bitcoinAddressSchema.statics.findMaxIndex = function findMaxIndex(xpubIndex) {
   const schema = this;
   return new Promise((resolve, reject) => {
@@ -66,5 +76,8 @@ bitcoinAddressSchema.statics.findFirstAvailable = function findFirstAvailable(xp
 const BitcoinAddress = mongoose.model('BitcoinAddress', bitcoinAddressSchema);
 const BitcoinIscoinPurchaseTransaction = mongoose.model('BitcoinIscoinPurchaseTransaction', bitcoinIscoinPurchaseTransactionSchema);
 const EosIscoinPurchaseTransaction = mongoose.model('EosIscoinPurchaseTransaction', eosIscoinPurchaseTransactionSchema);
+const EosTransfer = mongoose.model('EosTransfer', eosTransferSchema);
 
-module.exports = { BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction };
+module.exports = {
+  BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction, EosTransfer,
+};

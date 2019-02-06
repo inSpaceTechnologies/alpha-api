@@ -27,7 +27,9 @@ const eos = Eos({
 });
 
 // models
-const { BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction } = require('./models/purchase');
+const {
+  BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction, EosTransfer,
+} = require('./models/purchase');
 
 async function updateCommon(transaction, address) {
   // check whether it has been fully paid
@@ -40,12 +42,13 @@ async function updateCommon(transaction, address) {
       actions: [
         {
           account: config.eos.iscoin.account,
-          name: 'issue',
+          name: 'transfer',
           authorization: [{
             actor: config.eos.iscoin.issuer.account,
             permission: 'active',
           }],
           data: {
+            from: config.eos.iscoin.issuer.account,
             to: transaction.eosAccount,
             quantity: `${transaction.purchaseAmount.toFixed(config.eos.iscoin.decimalPlaces)} ${config.eos.iscoin.code}`,
             memo: '',
@@ -96,31 +99,19 @@ async function updateEos() {
   const activeTransactions = await EosIscoinPurchaseTransaction.find({ active: true });
 
   await Promise.all(activeTransactions.map(async (transaction) => {
-    // update balance
-    // nodeos --filter-on "eosDepositAccount:transfer:"
-    const actionsData = await eos.getActions(transaction.eosDepositAccount);
-    await Promise.all(actionsData.actions.map(async (action) => {
-      const { act } = action.action_trace;
-      if (act.account !== 'eosio.token') {
-        return;
-      }
-      if (act.name !== 'transfer') {
-        return;
-      }
-      if (act.data.to !== transaction.eosDepositAccount) {
-        return;
-      }
-      if (act.data.memo !== transaction.memo) {
-        return;
-      }
-      const quantity = act.data.quantity.split(' ');
-      if (quantity[1] !== 'EOS') {
-        return;
-      }
-      const amountReceived = parseFloat(quantity[0]);
-      transaction.amountReceived = amountReceived;
-      await transaction.save();
-    }));
+    // update amount
+    let amountReceived = 0;
+    const transfers = await EosTransfer.find({
+      to: transaction.eosDepositAccount,
+      memo: transaction.memo,
+      symbol: 'EOS',
+    });
+    transfers.forEach((transfer) => {
+      amountReceived += transfer.amount;
+    });
+
+    transaction.amountReceived = amountReceived;
+    await transaction.save();
 
     await updateCommon(transaction, null);
   }));
