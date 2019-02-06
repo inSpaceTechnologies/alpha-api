@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'inspace-api',
+      name: 'alpha-api',
       script: 'src/app.js',
       env: {
         NODE_ENV: 'development',
