@@ -6,6 +6,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 const express = require('express');
 const bitcore = require('bitcore-lib');
+const Eos = require('eosjs');
 
 const {
   HDPublicKey,
@@ -15,6 +16,12 @@ const {
 
 const config = require('../config');
 const { unknownError } = require('../middleware/error');
+
+const eos = Eos({
+  keyProvider: config.eos.iscoin.issuer.privateKey,
+  httpEndpoint: config.eos.host,
+  chainId: config.eos.chainID,
+});
 
 // models
 const {
@@ -184,6 +191,16 @@ router.post('/purchase/iscoin/eos', async (req, res, next) => {
   } catch (err) {
     next(unknownError(err));
   }
+});
+
+// get the remaining coins available to purchse (i.e. balance of issuer account)
+router.get('/purchase/iscoin/remaining', async (req, res, next) => {
+  const balance = await eos.getCurrencyBalance({
+    code: config.eos.iscoin.account,
+    account: config.eos.iscoin.issuer.account,
+    symbol: config.eos.iscoin.code,
+  });
+  res.send({ amount: parseFloat(balance[0].split(' ')[0]) });
 });
 
 router.get('/purchase/iscoin/:eosAccount', async (req, res, next) => {
