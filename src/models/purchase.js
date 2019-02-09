@@ -50,6 +50,11 @@ const eosTransferSchema = mongoose.Schema({
   amount: { type: Number, required: true },
 });
 
+const iscoinExchangeRateSchema = mongoose.Schema({
+  currencyCode: { type: String, required: true, unique: true },
+  exchangeRate: { type: Number, required: true },
+});
+
 bitcoinAddressSchema.statics.findMaxIndex = function findMaxIndex(xpubIndex) {
   const schema = this;
   return new Promise((resolve, reject) => {
@@ -77,7 +82,8 @@ const BitcoinAddress = mongoose.model('BitcoinAddress', bitcoinAddressSchema);
 const BitcoinIscoinPurchaseTransaction = mongoose.model('BitcoinIscoinPurchaseTransaction', bitcoinIscoinPurchaseTransactionSchema);
 const EosIscoinPurchaseTransaction = mongoose.model('EosIscoinPurchaseTransaction', eosIscoinPurchaseTransactionSchema);
 const EosTransfer = mongoose.model('EosTransfer', eosTransferSchema);
+const IscoinExchangeRate = mongoose.model('IscoinExchangeRate', iscoinExchangeRateSchema);
 
 module.exports = {
-  BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction, EosTransfer,
+  BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction, EosTransfer, IscoinExchangeRate,
 };

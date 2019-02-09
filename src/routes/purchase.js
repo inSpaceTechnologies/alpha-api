@@ -17,7 +17,9 @@ const config = require('../config');
 const { unknownError } = require('../middleware/error');
 
 // models
-const { BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction } = require('../models/purchase');
+const {
+  BitcoinAddress, BitcoinIscoinPurchaseTransaction, EosIscoinPurchaseTransaction, IscoinExchangeRate,
+} = require('../models/purchase');
 
 const { timeLimit, eosDepositAccount } = config.purchase;
 const xpubIndex = config.purchase.bitcoin.currentXpubIndex;
@@ -67,113 +69,121 @@ function getNewBitcoinAddress() {
 }
 
 // purchase iscoin with bitcoin
-router.post('/purchase/iscoin/btc', (req, res, next) => {
-  const { purchaseAmount, eosAccount } = req.body;
+router.post('/purchase/iscoin/btc', async (req, res, next) => {
+  try {
+    const { purchaseAmount, eosAccount } = req.body;
 
-  let address = null;
-  let bitcoinAddress = null;
-  let expiryDate = null;
-  let amount = null;
+    let address = null;
+    let bitcoinAddress = null;
+    let expiryDate = null;
+    let amount = null;
 
-  // check for an existing transaction for the account
-  BitcoinIscoinPurchaseTransaction.findOne({ eosAccount, active: true })
-    .then((transaction) => {
-      if (transaction) {
-        next(new Error('Transaction exists.'));
-        // break chain
-        return Promise.reject();
-      }
-      // get bitcoin address
-      return getNewBitcoinAddress();
-    })
-    .then((addr) => {
-      address = addr;
+    // check for an existing transaction for the account
+    const existingTransaction = await BitcoinIscoinPurchaseTransaction.findOne({ eosAccount, active: true });
+    if (existingTransaction) {
+      next(new Error('Transaction exists.'));
+      return;
+    }
 
-      bitcoinAddress = deriveBitcoinAddress(address.index);
+    // get bitcoin address
+    address = await getNewBitcoinAddress();
+    bitcoinAddress = deriveBitcoinAddress(address.index);
 
-      // TODO: hardcoded for now
-      const exchangeRate = 2;
+    // get exchange rate
+    const exchangeRateEntry = await IscoinExchangeRate.findOne({ currencyCode: 'BTC' });
+    if (!exchangeRateEntry) {
+      next(new Error('Invalid exchange rate'));
+      return;
+    }
+    const { exchangeRate } = exchangeRateEntry;
 
-      // get amount
-      amount = purchaseAmount / exchangeRate;
+    // get amount
+    amount = purchaseAmount * exchangeRate;
 
-      // get expiry date
-      expiryDate = Date.now() + timeLimit;
+    // get expiry date
+    expiryDate = Date.now() + timeLimit;
 
-      // create and save transaction entry
-      const transaction = new BitcoinIscoinPurchaseTransaction({
-        address: address.id,
-        eosAccount,
-        amount,
-        amountReceived: 0,
-        purchaseAmount,
-        expiryDate,
-        active: true,
-      });
-      return transaction.save();
-    })
-    .then(() => {
-      // set the address to unavailable
-      address.available = false;
-      return address.save();
-    })
-    .then(() => res.send({
+    // create and save transaction entry
+    const transaction = new BitcoinIscoinPurchaseTransaction({
+      address: address.id,
+      eosAccount,
+      amount,
+      amountReceived: 0,
+      purchaseAmount,
+      expiryDate,
+      active: true,
+    });
+    await transaction.save();
+
+    // set the address to unavailable
+    address.available = false;
+    await address.save();
+
+    res.send({
       address: bitcoinAddress,
       expiryDate,
       amount,
       purchaseAmount,
       amountReceived: 0,
-    }))
-    .catch((err) => {
-      if (err) {
-        next(unknownError(err));
-      }
     });
+  } catch (err) {
+    next(unknownError(err));
+  }
 });
 
 // purchase iscoin with EOS
 router.post('/purchase/iscoin/eos', async (req, res, next) => {
-  const { purchaseAmount, eosAccount } = req.body;
+  try {
+    const { purchaseAmount, eosAccount } = req.body;
 
-  // check for an existing transaction for the account
-  const existingTransaction = await EosIscoinPurchaseTransaction.findOne({ eosAccount, active: true });
-  if (existingTransaction) {
-    return next(new Error('Transaction exists.'));
+    // check for an existing transaction for the account
+    const existingTransaction = await EosIscoinPurchaseTransaction.findOne({ eosAccount, active: true });
+    if (existingTransaction) {
+      next(new Error('Transaction exists.'));
+      return;
+    }
+
+    // get exchange rate
+    const exchangeRateEntry = await IscoinExchangeRate.findOne({ currencyCode: 'EOS' });
+    if (!exchangeRateEntry) {
+      next(new Error('Invalid exchange rate'));
+      return;
+    }
+    const { exchangeRate } = exchangeRateEntry;
+
+    // get amount
+    const amount = purchaseAmount * exchangeRate;
+
+    // get expiry date
+    const expiryDate = Date.now() + timeLimit;
+
+    // get memo
+    const memo = eosAccount + Date.now();
+
+    // create and save transaction entry
+    const transaction = new EosIscoinPurchaseTransaction({
+      eosDepositAccount,
+      memo,
+      eosAccount,
+      amount,
+      amountReceived: 0,
+      purchaseAmount,
+      expiryDate,
+      active: true,
+    });
+    await transaction.save();
+
+    res.send({
+      memo,
+      eosDepositAccount,
+      expiryDate,
+      amount,
+      purchaseAmount,
+      amountReceived: 0,
+    });
+  } catch (err) {
+    next(unknownError(err));
   }
-
-  // TODO: hardcoded for now
-  const exchangeRate = 2;
-
-  // get amount
-  const amount = purchaseAmount / exchangeRate;
-
-  // get expiry date
-  const expiryDate = Date.now() + timeLimit;
-
-  // get memo
-  const memo = eosAccount + Date.now();
-
-  // create and save transaction entry
-  const transaction = new EosIscoinPurchaseTransaction({
-    eosDepositAccount,
-    memo,
-    eosAccount,
-    amount,
-    amountReceived: 0,
-    purchaseAmount,
-    expiryDate,
-    active: true,
-  });
-  await transaction.save();
-
-  return res.send({
-    memo,
-    eosDepositAccount,
-    expiryDate,
-    amount,
-    purchaseAmount,
-    amountReceived: 0,
-  });
 });
 
 router.get('/purchase/iscoin/:eosAccount', async (req, res, next) => {
